@@ -1,18 +1,22 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.*;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.*;
 import net.proteanit.sql.DbUtils;
 import javax.swing.*;
+import javax.swing.Timer;
 
 
 public class MKII extends JFrame implements ActionListener{
 	boolean trig = false;
 	Timer afk = new Timer(30000,this);
 	private int Smoney=0;
-	private String passLogin;
+	private String passLogin="1234";
 	private Connection con =null;
 	private ResultSet rs = null;
 	private PreparedStatement pst =null;
@@ -26,8 +30,8 @@ public class MKII extends JFrame implements ActionListener{
 	private JTextField carmodel;
 	private JTextField carprice;
 	private JTextField cartype;
-	JButton btnNewButton_2,Login,Admin,Addcar,btnNewButton_1,Logout,addcustom,deletecustom,editcustom;
-	private JTextField customname;
+	JButton Deletecar,Login,Admin,Addcar,Editcar,Logout,addcustom,deletecustom,editcustom,ChangePass;
+	private JTextField namecustum;
 	private JTextField addresscustom;
 	private JComboBox combodriverlc;
 	private JPanel panel_2;
@@ -38,6 +42,8 @@ public class MKII extends JFrame implements ActionListener{
 	private JTextField inputcustomid;
 	private JTextField inputCarid;
 	private JButton btnRent;
+	private Date now = new Date();
+	private JTextField cardidcustom;
 	public MKII() {
 		getContentPane().setBackground(Color.DARK_GRAY);
 		
@@ -49,8 +55,6 @@ public class MKII extends JFrame implements ActionListener{
 		tbcars.setLocation(0, 77);
 		tbcars.setSurrendersFocusOnKeystroke(true);
 		tbcars.setFillsViewportHeight(true);
-		tbcars.setCellSelectionEnabled(true);
-		tbcars.setColumnSelectionAllowed(true);
 		tbcars.setPreferredScrollableViewportSize(new Dimension(450,63));
 		tbcars.setFillsViewportHeight(true);
 		
@@ -86,7 +90,7 @@ public class MKII extends JFrame implements ActionListener{
 		getContentPane().add(PNewcar);
 		PNewcar.setLayout(null);
 		
-		JLabel lblNewLabel_1 = new JLabel("New Car");
+		JLabel lblNewLabel_1 = new JLabel("Car");
 		lblNewLabel_1.setFont(new Font("Times New Roman", Font.PLAIN, 18));
 		lblNewLabel_1.setForeground(SystemColor.textHighlight);
 		lblNewLabel_1.setBounds(12, 13, 97, 34);
@@ -141,16 +145,16 @@ public class MKII extends JFrame implements ActionListener{
 		Addcar.setBounds(12, 242, 97, 25);
 		PNewcar.add(Addcar);
 		
-		btnNewButton_1 = new JButton("Edit");
-		btnNewButton_1.setBounds(121, 242, 71, 25);
-		PNewcar.add(btnNewButton_1);
+		Editcar = new JButton("Edit");
+		Editcar.setBounds(121, 242, 71, 25);
+		PNewcar.add(Editcar);
 		
-		btnNewButton_2 = new JButton("Delete");
-		btnNewButton_2.setBounds(204, 242, 97, 25);
-		PNewcar.add(btnNewButton_2);
+		Deletecar = new JButton("Delete");
+		Deletecar.setBounds(204, 242, 97, 25);
+		PNewcar.add(Deletecar);
 		
 		Admin = new JButton("Admin");
-		Admin.setBounds(1091, 668, 97, 25);
+		Admin.setBounds(1079, 668, 109, 25);
 		getContentPane().add(Admin);
 		
 		JPanel PNewcustomer = new JPanel();
@@ -159,15 +163,21 @@ public class MKII extends JFrame implements ActionListener{
 		getContentPane().add(PNewcustomer);
 		PNewcustomer.setLayout(null);
 		
-		customname = new JTextField();
-		customname.setBounds(103, 56, 163, 22);
-		PNewcustomer.add(customname);
-		customname.setColumns(10);
+		namecustum = new JTextField();
+		namecustum.setBounds(103, 91, 163, 22);
+		PNewcustomer.add(namecustum);
+		namecustum.setColumns(10);
 		
 		addresscustom = new JTextField();
-		addresscustom.setBounds(103, 91, 163, 22);
+		addresscustom.setBounds(103, 126, 163, 22);
 		PNewcustomer.add(addresscustom);
 		addresscustom.setColumns(10);
+		
+		cardidcustom = new JTextField();
+		cardidcustom.setEditable(false);
+		cardidcustom.setColumns(10);
+		cardidcustom.setBounds(103, 56, 163, 22);
+		PNewcustomer.add(cardidcustom);
 		
 		addcustom = new JButton("Add");
 		addcustom.setBounds(12, 201, 79, 25);
@@ -183,34 +193,36 @@ public class MKII extends JFrame implements ActionListener{
 		
 		combodriverlc = new JComboBox();
 		combodriverlc.setModel(new DefaultComboBoxModel(new String[] {"Have", "No"}));
-		combodriverlc.setBounds(169, 126, 97, 22);
+		combodriverlc.setBounds(169, 169, 97, 22);
 		PNewcustomer.add(combodriverlc);
 		
-		JLabel lblNewLabel_7 = new JLabel("New Customers");
+		JLabel lblNewLabel_7 = new JLabel("Customers");
 		lblNewLabel_7.setForeground(Color.BLUE);
 		lblNewLabel_7.setFont(new Font("Sitka Subheading", Font.PLAIN, 16));
 		lblNewLabel_7.setBounds(12, 13, 188, 16);
 		PNewcustomer.add(lblNewLabel_7);
 		
 		JLabel lblNewLabel_8 = new JLabel("Name");
-		lblNewLabel_8.setBounds(12, 59, 56, 16);
+		lblNewLabel_8.setBounds(12, 94, 56, 16);
 		PNewcustomer.add(lblNewLabel_8);
 		
 		JLabel lblNewLabel_10 = new JLabel("Address");
-		lblNewLabel_10.setBounds(12, 94, 56, 16);
+		lblNewLabel_10.setBounds(12, 129, 56, 16);
 		PNewcustomer.add(lblNewLabel_10);
 		
 		JLabel lblNewLabel_11 = new JLabel("Driver's License");
-		lblNewLabel_11.setBounds(12, 129, 97, 16);
+		lblNewLabel_11.setBounds(12, 172, 97, 16);
 		PNewcustomer.add(lblNewLabel_11);
 		
+		JLabel lblCardid = new JLabel("CardID\r\n");
+		lblCardid.setBounds(12, 59, 56, 16);
+		PNewcustomer.add(lblCardid);
+		
 		Login = new JButton("Login Admin\r\n");
-		Login.setBounds(955, 668, 112, 25);
+		Login.setBounds(937, 668, 112, 25);
 		getContentPane().add(Login);
 		showDT();
-		btnNewButton_2.addActionListener(this);
-		combocars.addActionListener(this);
-		Login.addActionListener(this);
+		
 		
 		panel_2 = new JPanel();
 		panel_2.setBackground(new Color(102, 255, 204));
@@ -255,9 +267,26 @@ public class MKII extends JFrame implements ActionListener{
 		panel_2.add(btnRent);
 		
 		Logout = new JButton("Log out");
-		Logout.setBounds(955, 709, 112, 25);
+		Logout.setBounds(937, 732, 112, 25);
 		getContentPane().add(Logout);
+		
+		ChangePass = new JButton("ChangePass");
+		ChangePass.setEnabled(false);
+		ChangePass.setBounds(1079, 732, 109, 25);
+		getContentPane().add(ChangePass);
 		Logout.addActionListener(this);
+		Deletecar.addActionListener(this);
+		combocars.addActionListener(this);
+		Login.addActionListener(this);
+		Addcar.addActionListener(this);
+		Editcar.addActionListener(this);
+		addcustom.addActionListener(this);
+		editcustom.addActionListener(this);
+		deletecustom.addActionListener(this);
+		ChangePass.addActionListener(this);
+		Admin.addActionListener(this);
+		btnRent.addActionListener(this);
+		btnReturn.addActionListener(this);
 		logout();
 		setVisible(true);
 	}
@@ -299,18 +328,20 @@ public class MKII extends JFrame implements ActionListener{
 		cartype.setEditable(false);
 		Admin.setEnabled(false);
 		Addcar.setEnabled(false);
-		btnNewButton_2.setEnabled(false);
-		btnNewButton_1.setEnabled(false);
+		Deletecar.setEnabled(false);
+		Editcar.setEnabled(false);
 		addcustom.setEnabled(false);
 		deletecustom.setEnabled(false);
 		editcustom.setEnabled(false);
 		combodriverlc.setEnabled(false);
-		customname.setEditable(false);
+		namecustum.setEditable(false);
 		addresscustom.setEditable(false);
 		btnRent.setEnabled(false);
 		btnReturn.setEnabled(false);
 		inputCarid.setEditable(false);
 		inputcustomid.setEditable(false);
+		cardidcustom.setEditable(false);
+		ChangePass.setEnabled(false);
 		Login.setEnabled(true);
 	}
 	public void login() {
@@ -321,17 +352,33 @@ public class MKII extends JFrame implements ActionListener{
 		cartype.setEditable(true);
 		Admin.setEnabled(true);
 		Addcar.setEnabled(true);
-		btnNewButton_2.setEnabled(true);
-		btnNewButton_1.setEnabled(true);
+		Deletecar.setEnabled(true);
+		Editcar.setEnabled(true);
 		addcustom.setEnabled(true);
 		deletecustom.setEnabled(true);
 		editcustom.setEnabled(true);
 		combodriverlc.setEnabled(true);
-		customname.setEditable(true);
+		namecustum.setEditable(true);
 		addresscustom.setEditable(true);
 		btnRent.setEnabled(true);
 		btnReturn.setEnabled(true);
+		cardidcustom.setEditable(true);
+		ChangePass.setEnabled(true);
 		Login.setEnabled(false);
+	}
+	public void cleardatanewcar() {
+		carregis.setText("");
+		carbrand.setText("");
+		carmodel.setText("");
+		carprice.setText("");
+		cartype.setText("");
+	}
+	public void cleardatanewcustomers() {
+		// TODO Auto-generated method stub
+		cardidcustom.setText("");
+		namecustum.setText("");
+		addresscustom.setText("");
+		combodriverlc.setSelectedIndex(0);
 	}
 	public void actionPerformed(ActionEvent e) {
 		if(combocars.getSelectedItem()=="Customers") {
@@ -341,22 +388,182 @@ public class MKII extends JFrame implements ActionListener{
 			getContentPane().add(scrollPane_2);
 			getContentPane().remove(CustomscrollPane);
 		}
-		if(btnNewButton_2==e.getSource()) {
-			if (JOptionPane.showConfirmDialog(null, "[Delete].....Are you sure?", "WARNING",	JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+		if(Deletecar==e.getSource()) {
+			if (JOptionPane.showConfirmDialog(null, "[Delete]["+carregis.getText()+"]Are you sure?", "WARNING",	JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 			    // yes option
+				try {
+					String sql ="DELETE FROM cars "+"WHERE VehicleRegistration = '"+carregis.getText()+"' ";
+					pst=con.prepareStatement(sql);
+					pst.execute();
+					showDT(); //update
+				}catch (Exception evt) {
+					evt.printStackTrace();
+				}
 			} else {
 			    // no option
 			}
-		}else if(e.getSource()==Login) {
-			passLogin=JOptionPane.showInputDialog("Password?");
-			if(Integer.parseInt(passLogin)==1234) {
+		}else if(e.getSource()==Addcar) {
+			boolean trigger =true;
+			try {
+				String sql ="select * from cars";
+				pst=con.prepareStatement(sql);
+				rs=pst.executeQuery();
+				while(rs.next()) {
+					String carID = rs.getString("VehicleRegistration");
+					if(carID.equalsIgnoreCase(carregis.getText())) {
+						JOptionPane.showMessageDialog(null,"ป้ายมีอยู่แล้ว","Cation",JOptionPane.WARNING_MESSAGE);
+						trigger =false;
+						cleardatanewcar();
+					}
+				}
+			}catch (Exception evt) {
+				evt.printStackTrace();
+			}
+			if(trigger) {
+			try {
+				String sql="insert into cars(VehicleRegistration,CarBrand,CarModel,PriceADay,TypeCar,status)value(?,?,?,?,?,?)";
+				pst=con.prepareStatement(sql);
+				pst.setString(1,carregis.getText());
+				pst.setString(2,carbrand.getText());
+				pst.setString(3,carmodel.getText());
+				pst.setString(4,carprice.getText());
+				pst.setString(5,cartype.getText());
+				pst.setString(6,"complete");
+				pst.execute();
+				showDT(); //update
+				cleardatanewcar();
+				JOptionPane.showMessageDialog(null,"Saved New car.","Information",JOptionPane.INFORMATION_MESSAGE);
+			}catch (Exception evt) {
+				evt.printStackTrace();
+			}
+			}
+		}else if(e.getSource()==Editcar) {
+			if (JOptionPane.showConfirmDialog(null, "[Edit]["+carregis.getText()+"]Are you sure?", "WARNING",	JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+			    // yes option
+			try {
+				String sql="UPDATE cars "+
+						" SET CarBrand = '"+carbrand.getText()+"'"+
+						",CarModel = '"+carmodel.getText()+"'"+
+						",PriceADay = '"+carprice.getText() +"'"+
+						",TypeCar = '"+cartype.getText() +"' "+
+						" WHERE VehicleRegistration = '"+carregis.getText()+"'";
+				pst=con.prepareStatement(sql);
+				pst.execute();
+				cleardatanewcar();
+				showDT();
+			}catch (Exception evt) {
+				evt.printStackTrace();
+			}
+			}else {
+				//No
+			}
+		}//End PanelCar
+		//Start PanelCustomer
+		if(addcustom==e.getSource()) {
+			boolean trigger =true;
+			try {
+				String sql ="select * from customers";
+				pst=con.prepareStatement(sql);
+				rs=pst.executeQuery();
+				while(rs.next()) {
+					String carID = rs.getString("CardID");
+					if(carID.equalsIgnoreCase(cardidcustom.getText())) {
+						JOptionPane.showMessageDialog(null,"รหัสมีอยู่แล้ว","Cation",JOptionPane.WARNING_MESSAGE);
+						trigger =false;
+						cleardatanewcar();
+					}
+					if(cardidcustom.getText().length()!=12) {
+						JOptionPane.showMessageDialog(null,"รหัสต้องมีแค่ 12 หลักเท่านั้น","Cation",JOptionPane.WARNING_MESSAGE);
+						trigger =false;
+					}
+				}
+			}catch (Exception evt) {
+				evt.printStackTrace();
+			}
+			if(trigger) {
+			try {
+				String sql="insert into customers(Name,CardID,Address,DriverLicense,DateOfBorrow,DateOfDelivery,MoneyToPay,ClientStatus,PayForAFine)value(?,?,?,?,?,?,?,?,?)";
+				pst=con.prepareStatement(sql);
+				pst.setString(1,namecustum.getText());
+				pst.setString(2,cardidcustom.getText());
+				pst.setString(3,addresscustom.getText());
+				pst.setString(4,(String)combodriverlc.getSelectedItem());
+				Date myDate = now;
+				java.sql.Date sqlDate = new java.sql.Date( myDate.getTime() );
+				pst.setDate(5, (java.sql.Date) sqlDate);
+				pst.setDate(6, (java.sql.Date) sqlDate);
+				pst.setString(7,"0");
+				pst.setString(8,"ยังไม่ได้ยืม");
+				pst.setString(9,"ยังไม่ได้ยืม");
+				pst.execute();
+				showDT(); //update
+				cleardatanewcustomers();
+				JOptionPane.showMessageDialog(null,"Saved New Customer.","Information",JOptionPane.INFORMATION_MESSAGE);
+			}catch (Exception evt) {
+				evt.printStackTrace();
+			}
+			}
+		}else if(e.getSource()==editcustom) {
+			if (JOptionPane.showConfirmDialog(null, "[Edit]["+cardidcustom.getText()+"]Are you sure?", "WARNING",	JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+			    // yes option
+			try {
+				String sql="UPDATE customers "+
+						" SET Name = '"+namecustum.getText()+"'"+
+						",Address ='"+addresscustom.getText()+"'"+
+						",DriverLicense ='"+(String)combodriverlc.getSelectedItem()+"' "+
+						" WHERE CardID = '"+cardidcustom.getText()+"'";
+				pst=con.prepareStatement(sql);
+				pst.execute();
+				cleardatanewcustomers();
+				showDT();
+			}catch (Exception evt) {
+				evt.printStackTrace();
+			}
+			}else {
+				//No
+			}
+		}else if(e.getSource()==deletecustom) {
+			if (JOptionPane.showConfirmDialog(null, "[Delete]["+cardidcustom.getText()+"]Are you sure?", "WARNING",	JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+			    // yes option
+				try {
+					String sql ="DELETE FROM customers "+"WHERE CardID = '"+cardidcustom.getText()+"' ";
+					pst=con.prepareStatement(sql);
+					pst.execute();
+					showDT(); //update
+				}catch (Exception evt) {
+					evt.printStackTrace();
+				}
+			} else {
+			    // no option
+			}
+		}//end Panel Customer
+		if(e.getSource()==Login) {
+			String PLogin=JOptionPane.showInputDialog("Password?");
+			if(Integer.parseInt(passLogin)==Integer.parseInt(PLogin)) {
 				login();
 			}else {
 				JOptionPane.showMessageDialog(null,"Wrong password!!!");
-			}
-			
+			}	
 		}else if(e.getSource()==Logout) {
 			logout();
+		}else if(e.getSource()==Admin) {
+			JOptionPane.showMessageDialog(null,"Today,income = "+Smoney,"Information",JOptionPane.INFORMATION_MESSAGE);
+		}else if(e.getSource()==ChangePass) {
+			String PLogin=JOptionPane.showInputDialog("Password?");
+			if(Integer.parseInt(passLogin)==Integer.parseInt(PLogin)) {
+				while(true) {
+					passLogin=JOptionPane.showInputDialog("Enter New Password?[4 digit]");
+					if(passLogin.length()==4)break;
+					JOptionPane.showMessageDialog(null,"not 4 digit try again!!!");
+				}
+			}else {
+				JOptionPane.showMessageDialog(null,"Wrong password!!!");
+			}
+		}//end Admin edit
+		if(e.getSource()==btnRent) {
+			
+		}else if(e.getSource()==btnReturn) {
+			
 		}
 	}
 }
