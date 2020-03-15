@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.logging.Level;
@@ -14,7 +15,6 @@ import javax.swing.Timer;
 
 public class MKII extends JFrame implements ActionListener{
 	boolean trig = false;
-	Timer afk = new Timer(30000,this);
 	private int Smoney=0;
 	private String passLogin="1234";
 	private Connection con =null;
@@ -44,6 +44,8 @@ public class MKII extends JFrame implements ActionListener{
 	private JButton btnRent;
 	private Date now = new Date();
 	private JTextField cardidcustom;
+	private JLabel lblNewLabel_14;
+	private JTextField inputdays;
 	public MKII() {
 		getContentPane().setBackground(Color.DARK_GRAY);
 		
@@ -52,6 +54,28 @@ public class MKII extends JFrame implements ActionListener{
 		getContentPane().setLayout(null);
 		
 		tbcars = new JTable();
+		tbcars.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent arg0) {
+				try {
+					int row = tbcars.getSelectedRow();
+					String selectId=tbcars.getValueAt(row,0).toString();
+					String sql ="select * from cars where VehicleRegistration='"+selectId+"' ";
+					pst = con.prepareStatement(sql);
+					rs = pst.executeQuery();
+					if(rs.next()) {
+						inputCarid.setText(rs.getString("VehicleRegistration"));
+						carregis.setText(rs.getString("VehicleRegistration"));
+						carbrand.setText(rs.getString("CarBrand"));
+						carmodel.setText(rs.getString("CarModel"));
+						carprice.setText(rs.getString("PriceADay"));
+						cartype.setText(rs.getString("TypeCar"));
+						
+					}
+				}catch (Exception e) {
+					
+				}
+			}
+		});
 		tbcars.setLocation(0, 77);
 		tbcars.setSurrendersFocusOnKeystroke(true);
 		tbcars.setFillsViewportHeight(true);
@@ -60,7 +84,7 @@ public class MKII extends JFrame implements ActionListener{
 		
 		
 		JScrollPane CarscrollPane = new JScrollPane(tbcars);
-		CarscrollPane.setBounds(399, 98, 789, 202);
+		CarscrollPane.setBounds(399, 98, 789, 232);
 		getContentPane().add(CarscrollPane);
 		
 		combocars = new JComboBox();
@@ -70,6 +94,26 @@ public class MKII extends JFrame implements ActionListener{
 		getContentPane().add(combocars);
 		
 		tbcustomers = new JTable();
+		tbcustomers.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				try {
+					int row = tbcustomers.getSelectedRow();
+					String selectId=tbcustomers.getValueAt(row,1).toString();
+					String sql ="select * from customers where CardID='"+selectId+"' ";
+					pst = con.prepareStatement(sql);
+					rs = pst.executeQuery();
+					if(rs.next()) {
+						inputcustomid.setText(rs.getString("CardID"));
+						cardidcustom.setText(rs.getString("CardID"));
+						namecustum.setText(rs.getString("Name"));
+						addresscustom.setText(rs.getString("Address"));
+					}
+				}catch (Exception evt) {
+					
+				}
+			}
+		});
 		tbhistory = new JTable();
 		CustomscrollPane = new JScrollPane(tbcustomers);
 		CustomscrollPane.setBounds(399, 400, 789, 239);
@@ -256,7 +300,7 @@ public class MKII extends JFrame implements ActionListener{
 		inputcustomid.setColumns(10);
 		
 		inputCarid = new JTextField();
-		inputCarid.setBounds(155, 26, 187, 22);
+		inputCarid.setBounds(64, 26, 136, 22);
 		panel_2.add(inputCarid);
 		inputCarid.setColumns(10);
 		
@@ -265,6 +309,16 @@ public class MKII extends JFrame implements ActionListener{
 		btnRent.setFont(new Font("Times New Roman", Font.PLAIN, 36));
 		btnRent.setBounds(385, 17, 236, 59);
 		panel_2.add(btnRent);
+		
+		lblNewLabel_14 = new JLabel("Days");
+		lblNewLabel_14.setBounds(232, 29, 32, 16);
+		panel_2.add(lblNewLabel_14);
+		
+		inputdays = new JTextField();
+		inputdays.setEditable(false);
+		inputdays.setColumns(10);
+		inputdays.setBounds(271, 26, 71, 22);
+		panel_2.add(inputdays);
 		
 		Logout = new JButton("Log out");
 		Logout.setBounds(937, 732, 112, 25);
@@ -340,6 +394,7 @@ public class MKII extends JFrame implements ActionListener{
 		btnReturn.setEnabled(false);
 		inputCarid.setEditable(false);
 		inputcustomid.setEditable(false);
+		inputdays.setEditable(false);
 		cardidcustom.setEditable(false);
 		ChangePass.setEnabled(false);
 		Login.setEnabled(true);
@@ -364,6 +419,9 @@ public class MKII extends JFrame implements ActionListener{
 		btnReturn.setEnabled(true);
 		cardidcustom.setEditable(true);
 		ChangePass.setEnabled(true);
+		inputCarid.setEditable(true);
+		inputcustomid.setEditable(true);
+		inputdays.setEditable(true);
 		Login.setEnabled(false);
 	}
 	public void cleardatanewcar() {
@@ -428,7 +486,7 @@ public class MKII extends JFrame implements ActionListener{
 				pst.setString(3,carmodel.getText());
 				pst.setString(4,carprice.getText());
 				pst.setString(5,cartype.getText());
-				pst.setString(6,"complete");
+				pst.setString(6,"Ready");
 				pst.execute();
 				showDT(); //update
 				cleardatanewcar();
@@ -482,16 +540,16 @@ public class MKII extends JFrame implements ActionListener{
 			}
 			if(trigger) {
 			try {
-				String sql="insert into customers(Name,CardID,Address,DriverLicense,DateOfBorrow,DateOfDelivery,MoneyToPay,ClientStatus,PayForAFine)value(?,?,?,?,?,?,?,?,?)";
+				String sql="insert into customers(Name,CardID,Address,DriverLicense,DateOfBorrow,DateOfDelivery,MoneyToPay,ClientStatus,CarsRented)value(?,?,?,?,?,?,?,?,?)";
 				pst=con.prepareStatement(sql);
 				pst.setString(1,namecustum.getText());
 				pst.setString(2,cardidcustom.getText());
 				pst.setString(3,addresscustom.getText());
 				pst.setString(4,(String)combodriverlc.getSelectedItem());
-				Date myDate = now;
-				java.sql.Date sqlDate = new java.sql.Date( myDate.getTime() );
-				pst.setDate(5, (java.sql.Date) sqlDate);
-				pst.setDate(6, (java.sql.Date) sqlDate);
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+			    String strDate = formatter.format(now);  
+				pst.setString(5,strDate);
+				pst.setString(6,strDate);
 				pst.setString(7,"0");
 				pst.setString(8,"ยังไม่ได้ยืม");
 				pst.setString(9,"ยังไม่ได้ยืม");
@@ -561,9 +619,222 @@ public class MKII extends JFrame implements ActionListener{
 			}
 		}//end Admin edit
 		if(e.getSource()==btnRent) {
+			if(Checkcustom())JOptionPane.showMessageDialog(null,"Customers ท่านนี้ได้ยืมรถแล้ว ไม่สามารถยืมเพิ่มได้");
+			else if(!Checkcar())JOptionPane.showMessageDialog(null,"รถคนนี้ได้ถูกยืมไปแล้ว");
+			else {
+			boolean trigger=true;
+			String Customs = null,car = null,bcar=null;
+			int Total=0;
+			try {
+			if(inputCarid.getText().equals("")||inputcustomid.getText().equals("")||inputdays.getText().equals("")) {
+				JOptionPane.showMessageDialog(null,"โปรดใส่ข้อมูลให้ครบ");
+			}else {
+				
+				int days=Integer.parseInt(inputdays.getText());
+				String Selecttable = inputCarid.getText();
+				try {
+					String sql="select * from cars";
+					pst=con.prepareStatement(sql);
+					rs=pst.executeQuery();
+					while(rs.next()) {
+						if(Selecttable.equals(rs.getString("VehicleRegistration"))) {
+							Total=days*Integer.parseInt(rs.getString("PriceADay"));
+							car=inputCarid.getText()+" "+rs.getString("CarBrand")+" "+rs.getString("CarModel");
+							bcar=rs.getString("CarBrand")+" "+rs.getString("CarModel");
+						}
+					}
+				}catch (Exception evt) {
+					evt.printStackTrace();
+				}
+				
+			}
+			}catch (Exception eee) {
+				JOptionPane.showMessageDialog(null,"ใส่ข้อมูลให้ถูกต้อง");
+				Clearinput();
+			}
+			try {
+				String sql="select * from customers";
+				String Selecttable = inputcustomid.getText();
+				pst=con.prepareStatement(sql);
+				rs=pst.executeQuery();
+				while(rs.next()) {
+					if(Selecttable.equals(rs.getString("CardID"))) {
+						Customs=rs.getString("Name");
+						trigger=false;
+					}
+				}
+			}catch (Exception evt) {
+				evt.printStackTrace();
+			}
 			
+			
+			if(Total==0) {
+				JOptionPane.showMessageDialog(null,"ไม่พบป้ายทะเบียนรถคันนี้");
+			}else if(trigger){
+				JOptionPane.showMessageDialog(null,"ไม่พบลูกค้าท่านนี้ในระบบ");
+			}else {
+				String report=Customs+" เช่ารถ "+car+" \nทั้งหมด "+inputdays.getText()+" วัน ยอดทั้งหมด "+Total+" บาท  ยืนยัน?";
+				if (JOptionPane.showConfirmDialog(null,report, "Cation",	JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+				    // yes option
+					try { 
+						SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+					    String strDate = formatter.format(now); 
+					    Calendar cal = Calendar.getInstance();
+					    cal.setTime(now);
+					    // manipulate date
+					    cal.add(Calendar.DATE, Integer.parseInt(inputdays.getText())); 
+					    // convert calendar to date
+					    Date modifiedDate = cal.getTime();
+					    String strDate2 = formatter.format(modifiedDate);
+						String sql="UPDATE customers "+
+								" SET DateOfBorrow = '"+strDate+"'"+
+								",DateOfDelivery = '"+strDate2+"'"+
+								",MoneyToPay = '"+Total +"'"+
+								",ClientStatus = '"+"ยังไม่ได้คืน" +"' "+
+								",CarsRented = '"+inputCarid.getText()+"' "+
+								" WHERE CardID = '"+inputcustomid.getText()+"'";
+						pst=con.prepareStatement(sql);
+						pst.execute();
+					}catch (Exception evt) {
+						evt.printStackTrace();
+					}
+					Smoney+=Total;
+					try { 
+						String sql="UPDATE cars "+
+								" SET status = 'Rented' "+
+								" WHERE VehicleRegistration = '"+inputCarid.getText()+"'";
+						pst=con.prepareStatement(sql);
+						pst.execute();
+					}catch (Exception evt) {
+						evt.printStackTrace();
+					}
+					try {
+						Date now = new Date();
+						String sql="insert into history(DateProcess,Name,CardID,Car,Event)value(?,?,?,?,?)";
+						pst=con.prepareStatement(sql);
+						pst.setString(1,now.toString().substring(0,19));
+						pst.setString(2,inputCarid.getText());
+						pst.setString(3,bcar);
+						pst.setString(4,Customs);
+						pst.setString(5,"ยืมรถ");
+						pst.execute();
+						JOptionPane.showMessageDialog(null,"Rent Success","Information",JOptionPane.INFORMATION_MESSAGE);
+					}catch (Exception evt) {
+						evt.printStackTrace();
+					}
+					Clearinput();
+					showDT();
+				} else {
+				    // no option
+					Clearinput();
+				}
+			}
+			}
 		}else if(e.getSource()==btnReturn) {
-			
+			if(inputcustomid.getText().equals("")) {
+				JOptionPane.showMessageDialog(null,"โปรดใส่รหัสCustomer");
+			}else if(!Checkcustom())JOptionPane.showMessageDialog(null,"Customers ท่านนี้ยังไม่ได้ยืมรถ");
+			else {
+				String Rcar="",Custom="",bcar="";
+				try {
+					String sql="select * from customers WHERE CardID='"+inputcustomid.getText()+"' ";
+					pst=con.prepareStatement(sql);
+					rs=pst.executeQuery();
+					while(rs.next()) {
+						Rcar=rs.getString("CarsRented");
+						Custom=rs.getString("Name");
+					}
+				}catch (Exception evt) {
+					evt.printStackTrace();
+				}
+				try {
+					String sql="select * from cars WHERE VehicleRegistration='"+Rcar+"' ";
+					pst=con.prepareStatement(sql);
+					rs=pst.executeQuery();
+					while(rs.next()) {
+							bcar=rs.getString("CarBrand");
+					}
+				}catch (Exception evt) {
+					evt.printStackTrace();
+				}
+				try { 
+					SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+				    String strDate = formatter.format(now); 
+					String sql="UPDATE customers "+
+							" SET DateOfBorrow = '"+strDate+"' "+
+							",DateOfDelivery = '"+strDate+"' "+
+							",ClientStatus = 'ยังไม่ได้ยืม' "+
+							",MoneyToPay = '0' "+
+							",CarsRented = 'ยังไม่ได้ยืม' "+
+							" WHERE CardID = '"+inputcustomid.getText()+"'";
+					pst=con.prepareStatement(sql);
+					pst.execute();
+				}catch (Exception evt) {
+					evt.printStackTrace();
+				}
+				try { 
+					String sql="UPDATE cars "+
+							" SET status = 'Ready' "+
+							" WHERE VehicleRegistration = '"+Rcar+"'";
+					pst=con.prepareStatement(sql);
+					pst.execute();
+				}catch (Exception evt) {
+					evt.printStackTrace();
+				}
+				try {
+					Date now = new Date();
+					String sql="insert into history(Name,CardID,Car,DateProcess,Event)value(?,?,?,?,?)";
+					pst=con.prepareStatement(sql);
+					pst.setString(1,Custom);
+					pst.setString(2,Rcar);
+					pst.setString(3,bcar);
+					pst.setString(4,now.toString().substring(0,19));
+					pst.setString(5,"คืนรถ");
+					pst.execute();
+					JOptionPane.showMessageDialog(null,"Return Car Success","Information",JOptionPane.INFORMATION_MESSAGE);
+				}catch (Exception evt) {
+					evt.printStackTrace();
+				}
+				showDT();
+			}
 		}
 	}
+	public void Clearinput() {
+		inputCarid.setText("");
+		inputcustomid.setText("");
+		inputdays.setText("");
+	}
+	public boolean Checkcustom() {
+		boolean Borrow=true;
+		try {
+			String sql ="select * from customers where CardID='"+inputcustomid.getText()+"' ";
+			pst = con.prepareStatement(sql);
+			rs = pst.executeQuery();
+			if(rs.next()) {
+				if(rs.getString("ClientStatus").equals("ยังไม่ได้ยืม")) {
+					Borrow=false;
+				}
+			}
+		}catch (Exception e) {
+			
+		}
+		return Borrow;
+	}
+	public boolean Checkcar() {
+		boolean Ready=false;
+		try {
+			String sql ="select * from cars where VehicleRegistration='"+inputCarid.getText()+"' ";
+			pst = con.prepareStatement(sql);
+			rs = pst.executeQuery();
+			if(rs.next()) {
+				if(rs.getString("status").equals("Ready")) {
+					Ready=true;
+				}
+			}
+		}catch (Exception e) {
+			
+		}
+		return Ready;
+	}
 }
+
